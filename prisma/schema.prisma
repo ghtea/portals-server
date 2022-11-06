@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  email       String        @unique
+  name        String?
+  picture     String?
+  googleId    String?       @unique
+  role        UserRole      @default(NORMAL)
+  portal      Portal[]
+  portalVisit PortalVisit[]
+}
+
+model Portal {
+  id          Int               @id @default(autoincrement())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  endAt       DateTime          @default(now())
+  status      PortalStatus      @default(ALIVE)
+  title       String            @db.VarChar(255)
+  contentType PortalContentType @default(OTHERS)
+  priority    PortalPriority    @default(NORMAL)
+  creator     User              @relation(fields: [creatorId], references: [id])
+  creatorId   Int
+  portalVisit PortalVisit[]
+}
+
+model PortalVisit {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  portal    Portal   @relation(fields: [portalId], references: [id])
+  portalId  Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+enum PortalContentType {
+  POST
+  VIDEO
+  OTHERS
+}
+
+enum PortalStatus {
+  ALIVE
+  DEAD
+}
+
+enum PortalPriority {
+  NORMAL
+  HIGH
+}
+
+enum UserRole {
+  ADMIN
+  NORMAL
+}
